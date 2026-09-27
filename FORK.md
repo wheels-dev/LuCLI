@@ -70,7 +70,7 @@ Pages, or another registry. Scheduled publishing workflows remain disabled.
    version. Confirm the tag does not exist and all required checks pass.
 2. First dispatch `gh workflow run release.yml --repo wheels-dev/LuCLI --ref <candidate-branch> -f publish=false`.
    This runs CI and retains candidate artifacts without creating a tag/release.
-   Test those assets with strict Wheels CLI tests and real stdio MCP probes;
+   Run `install-validation.yml` with that dry-run ID and version to verify the retained assets on Linux, macOS, and Windows (including the EXE and ZIP payload). Test those assets with strict Wheels CLI tests and real stdio MCP probes;
    get both independent reviewers to clear the full assembled diff, runbook,
    and release workflow. Then dispatch
    `gh workflow run release.yml --repo wheels-dev/LuCLI --ref wheels -f publish=true`.
