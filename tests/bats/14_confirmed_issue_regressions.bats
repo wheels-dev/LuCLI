@@ -71,7 +71,14 @@ EOF
     assert_success
 }
 
-@test "issue #71: release workflow invokes jreleaser with explicit config file" {
-    run grep -F 'mvn -DskipTests=true -Djreleaser.config.file=jreleaser.yml jreleaser:full-release' "${LUCLI_ROOT_DIR}/.github/workflows/release.yml"
+@test "fork release stays on Wheels with publishing opt-in" {
+    local workflow="${LUCLI_ROOT_DIR}/.github/workflows/release.yml"
+    run grep -F -- '--repo wheels-dev/LuCLI --target "$GITHUB_SHA"' "$workflow"
     assert_success
+    run grep -F "if: inputs.publish && github.ref == 'refs/heads/wheels'" "$workflow"
+    assert_success
+    run grep -F 'default: false' "$workflow"
+    assert_success
+    run grep -E 'jreleaser:full-release|docker (push|login)|brew (publish|bump)' "$workflow"
+    [ "$status" -eq 1 ]
 }
