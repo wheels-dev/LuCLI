@@ -3,53 +3,106 @@ name: Install Validation
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: Version to validate (for Linux installer). Use "latest" for latest release.
+      source:
+        description: Validate a retained candidate or actual published release assets
+        type: choice
+        options: [candidate, published]
+        default: candidate
+        required: true
+      run_id:
+        description: Successful fork Release dry-run (required for candidate source)
         required: false
-        default: latest
+        type: string
+      version:
+        description: Expected candidate version
+        required: true
+        default: '0.6.2.1'
+        type: string
+
+permissions:
+  contents: read
+  actions: read
 
 jobs:
-  install-smoke:
-    name: Install Smoke (${{ matrix.os }})
+  candidate-assets:
+    if: github.repository == 'wheels-dev/LuCLI'
+    name: Candidate assets (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-    env:
-      LUCLI_TEST_VERSION: ${{ github.event.inputs.version || 'latest' }}
-
     steps:
-      - name: Validate Linux installer install
-        if: runner.os == 'Linux'
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download retained fork candidate
+        if: inputs.source == 'candidate'
+        uses: actions/download-artifact@v4
+        with:
+          repository: wheels-dev/LuCLI
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          pattern: lucli-${{ inputs.version }}-*
+          merge-multiple: true
+          path: assets
+      - name: Download published fork release assets
+        if: inputs.source == 'published'
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_VERSION: ${{ inputs.version }}
         run: |
-          if [ "$LUCLI_TEST_VERSION" = "latest" ]; then
-            curl -LsSf https://lucli.dev/install.sh | sh
-          else
-            LUCLI_VERSION="$LUCLI_TEST_VERSION" curl -LsSf https://lucli.dev/install.sh | sh
-          fi
-
-          if command -v lucli >/dev/null 2>&1; then
-            lucli --version
-          else
-            "$HOME/.local/bin/lucli" --version
-          fi
-
-      - name: Validate macOS Homebrew install
-        if: runner.os == 'macOS'
+          set -euo pipefail
+          [[ "$EXPECTED_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          gh release download "v$EXPECTED_VERSION" --repo wheels-dev/LuCLI --dir assets
+      - name: Verify hashes, ZIP payload, and executable versions
         shell: bash
+        env:
+          EXPECTED_VERSION: ${{ inputs.version }}
         run: |
-          brew tap cybersonic/homebrew-tap
-          brew install cybersonic/homebrew-tap/lucli
-          lucli --version
-
-      - name: Validate Windows Scoop install
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-          Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
-          scoop bucket add lucli https://github.com/cybersonic/scoop-bucket.git
-          scoop install lucli/lucli
-          lucli --version
+          python - <<'PY'
+          import hashlib, os, pathlib, re, subprocess, zipfile
+          root = pathlib.Path('assets').resolve()
+          version = os.environ['EXPECTED_VERSION']
+          assert re.fullmatch(r'\d+\.\d+\.\d+\.\d+', version), version
+          names = {'lucli', 'lucli.jar', 'lucli-windows.zip',
+                   f'lucli-{version}-linux', f'lucli-{version}-macos',
+                   f'lucli-{version}.jar', f'lucli-{version}.exe'}
+          assert {p.name for p in root.iterdir()} == names | {'checksums_sha256.txt'}
+          expected = {}
+          for line in (root / 'checksums_sha256.txt').read_text().splitlines():
+              digest, name = line.split(maxsplit=1)
+              assert name in names and name not in expected, name
+              expected[name] = digest
+          assert set(expected) == names
+          for name in sorted(names):
+              actual = hashlib.sha256((root / name).read_bytes()).hexdigest()
+              assert actual == expected[name], name
+              print(f'SHA256 {actual} {name}', flush=True)
+          with zipfile.ZipFile(root / 'lucli-windows.zip') as archive:
+              assert archive.namelist() == ['lucli.exe']
+              assert archive.read('lucli.exe') == (root / f'lucli-{version}.exe').read_bytes()
+              archive.extract('lucli.exe', root / 'windows-zip')
+          commands = [['java', '-jar', str(root / name), '--version']
+                      for name in ['lucli.jar', f'lucli-{version}.jar']]
+          if os.name == 'nt':
+              commands += [[str(root / f'lucli-{version}.exe'), '--version'],
+                           [str(root / 'windows-zip' / 'lucli.exe'), '--version']]
+          else:
+              for name in ['lucli', f'lucli-{version}-linux', f'lucli-{version}-macos']:
+                  (root / name).chmod(0o755)
+                  commands.append([str(root / name), '--version'])
+          for command in commands:
+              result = subprocess.run(command, text=True, capture_output=True, timeout=60)
+              output = result.stdout + result.stderr
+              print(f'{command}:\n{output}', flush=True)
+              assert result.returncode == 0, result.returncode
+              assert f'LuCLI Version: {version}' in output, output
+              assert 'Lucee Version: 7.0.4.34' in output, output
+          PY
