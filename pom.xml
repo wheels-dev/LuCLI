@@ -6,7 +6,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucli</artifactId>
-  <version>0.6.1</version>
+  <version>0.6.1.1</version>
 
   <name>LuCLI</name>
   <description>A CLI for Lucee</description>
@@ -520,11 +520,11 @@
                     <runtimeBits>64/32</runtimeBits>
                   </jre>
                   <versionInfo>
-                    <fileVersion>1.0.52.0</fileVersion>
+                    <fileVersion>${project.version}</fileVersion>
                     <txtFileVersion>${project.version}</txtFileVersion>
                     <fileDescription>LuCLI - A terminal application with Lucee CFML integration</fileDescription>
                     <copyright>2024</copyright>
-                    <productVersion>1.0.52.0</productVersion>
+                    <productVersion>${project.version}</productVersion>
                     <txtProductVersion>${project.version}</txtProductVersion>
                     <productName>LuCLI</productName>
                     <internalName>lucli</internalName>

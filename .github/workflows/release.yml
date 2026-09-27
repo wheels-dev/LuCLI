@@ -1,12 +1,20 @@
 name: Release
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish the checked wheels branch after both candidate reviews'
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
 
 jobs:
   ci-verification:
+    if: github.repository == 'wheels-dev/LuCLI'
     name: CI Verification
     uses: ./.github/workflows/ci.yml
     permissions:
@@ -17,103 +25,71 @@ jobs:
 
   publish:
     needs: ci-verification
+    if: github.repository == 'wheels-dev/LuCLI'
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - uses: actions/setup-java@v4
         with:
-          java-version: 21
+          java-version: '21'
           distribution: temurin
-
-      - name: Cache Maven dependencies
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-21-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-m2-21-
-            ${{ runner.os }}-m2-
-
-      - name: Get version
+      - name: Validate unpublished fork version
         id: version
-        run: |
-          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          if [[ "$VERSION" == *"-SNAPSHOT" ]]; then
-            echo "is_snapshot=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_snapshot=false" >> $GITHUB_OUTPUT
-          fi
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Check if tag exists
-        id: tag_check
-        if: steps.version.outputs.is_snapshot == 'false' && github.event_name == 'workflow_dispatch'
-        run: |
-          VERSION="${{ steps.version.outputs.VERSION }}"
-          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Build artifacts for JReleaser
-        if: steps.version.outputs.is_snapshot == 'false' && github.event_name == 'workflow_dispatch' && steps.tag_check.outputs.exists == 'false'
-        run: |
-          mvn -DskipTests=true clean package -Pwindows-exe
-          cat src/bin/lucli.sh target/lucli.jar > target/lucli
-          chmod +x target/lucli
-          rm -f target/lucli-windows.zip
-          zip -j target/lucli-windows.zip target/lucli.exe
-          # Legacy asset names (released as files.artifacts in jreleaser.yml).
-          # Every release up to v0.3.17 shipped these names and downstream
-          # consumers (Wheels CI, Homebrew formulas, Scoop manifests, the
-          # bootstrap installer) pin them.
-          VERSION="${{ steps.version.outputs.VERSION }}"
-          cp target/lucli     "target/lucli-$VERSION-linux"
-          cp target/lucli     "target/lucli-$VERSION-macos"
-          cp target/lucli.exe "target/lucli-$VERSION.exe"
-          cp target/lucli.jar "target/lucli-$VERSION.jar"
-
-      - name: Publish GitHub release, Homebrew tap, and Scoop bucket with JReleaser
-        if: steps.version.outputs.is_snapshot == 'false' && github.event_name == 'workflow_dispatch' && steps.tag_check.outputs.exists == 'false'
         env:
-          JRELEASER_GITHUB_TOKEN: ${{ secrets.JRELEASER_GITHUB_TOKEN || secrets.HOMEBREW_TAP_TOKEN }}
-          JRELEASER_HOMEBREW_GITHUB_TOKEN: ${{ secrets.JRELEASER_HOMEBREW_GITHUB_TOKEN || secrets.HOMEBREW_TAP_TOKEN || secrets.JRELEASER_GITHUB_TOKEN }}
-          JRELEASER_SCOOP_GITHUB_TOKEN: ${{ secrets.JRELEASER_SCOOP_GITHUB_TOKEN || secrets.JRELEASER_GITHUB_TOKEN || secrets.HOMEBREW_TAP_TOKEN }}
-        run: mvn -DskipTests=true -Djreleaser.config.file=jreleaser.yml jreleaser:full-release
-
-      - name: Build JAR for Docker image
-        if: steps.version.outputs.is_snapshot == 'false' && github.event_name == 'workflow_dispatch' && steps.tag_check.outputs.exists == 'false'
-        run: mvn -DskipTests=true package
-
-      - name: Set up Docker Buildx
-        if: steps.version.outputs.is_snapshot == 'false' && github.event_name == 'workflow_dispatch' && steps.tag_check.outputs.exists == 'false'
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
-        if: steps.version.outputs.is_snapshot == 'false' && github.event_name == 'workflow_dispatch' && steps.tag_check.outputs.exists == 'false'
-        uses: docker/login-action@v3
+          PUBLISH: ${{ inputs.publish }}
+        run: |
+          set -euo pipefail
+          if [[ "$PUBLISH" == true && "$GITHUB_REF" != refs/heads/wheels ]]; then
+            echo 'Publishing is allowed only from wheels'; exit 1
+          fi
+          version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Expected upstream.patch-counter version'; exit 1; }
+          if git rev-parse "refs/tags/v$version" >/dev/null 2>&1; then
+            echo "Tag v$version already exists; never replace a published version"; exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Build release assets
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          mvn -DskipTests=true clean package -Pwindows-exe
+          mkdir dist
+          cat src/bin/lucli.sh target/lucli.jar > "dist/lucli-$VERSION-linux"
+          chmod +x "dist/lucli-$VERSION-linux"
+          cp "dist/lucli-$VERSION-linux" "dist/lucli-$VERSION-macos"
+          cp target/lucli.jar "dist/lucli-$VERSION.jar"
+          cp target/lucli.jar dist/lucli.jar
+          cp target/lucli.exe "target/lucli-$VERSION.exe"
+          cp "target/lucli-$VERSION.exe" dist/
+          cp "dist/lucli-$VERSION-linux" dist/lucli
+          zip -j target/lucli-windows.zip target/lucli.exe
+          cp target/lucli-windows.zip dist/
+          java -jar "dist/lucli-$VERSION.jar" --version | tee /tmp/lucli-version.txt
+          grep -F "LuCLI Version: $VERSION" /tmp/lucli-version.txt
+          (cd dist && sha256sum * > checksums_sha256.txt)
+      - name: Retain candidate assets without publishing
+        uses: actions/upload-artifact@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        if: steps.version.outputs.is_snapshot == 'false' && github.event_name == 'workflow_dispatch' && steps.tag_check.outputs.exists == 'false'
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          platforms: |
-            linux/amd64
-            linux/arm64
-            linux/arm64/v8
-          tags: |
-            markdrew/lucli:${{ steps.version.outputs.VERSION }}
-            markdrew/lucli:latest
+          name: lucli-${{ steps.version.outputs.version }}-${{ github.sha }}
+          path: dist/*
+          retention-days: 14
+      - name: Publish only to the Wheels fork
+        if: inputs.publish && github.ref == 'refs/heads/wheels'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          gh release create "v$VERSION" dist/* \
+            --repo wheels-dev/LuCLI --target "$GITHUB_SHA" \
+            --title "LuCLI $VERSION (Wheels patch queue)" \
+            --notes 'Upstream v0.6.1 plus the reviewed Wheels patch queue. See FORK.md at this tag for provenance, verification, and known limits.'
