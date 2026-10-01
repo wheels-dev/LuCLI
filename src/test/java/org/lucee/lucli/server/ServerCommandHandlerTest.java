@@ -528,4 +528,18 @@ class ServerCommandHandlerTest {
         assertTrue(showsBindAddress(dryRunWith("run", "--dry-run", "--host", "0.0.0.0"), "0.0.0.0"));
         assertTrue(showsBindAddress(dryRunWith("run", "--dry-run", "--host=::1"), "::1"));
     }
+
+    @Test
+    void dryRun_refusesUnauthenticatedJmxOffLoopback_forStartAndRun() throws Exception {
+        String json = "{\"name\":\"jmx-refusal-test\",\"port\":8080,\"bindAddress\":\"0.0.0.0\","
+                + "\"monitoring\":{\"enabled\":true,\"jmx\":{\"port\":8999}}}";
+        for (String verb : new String[] {"start", "run"}) {
+            Files.writeString(tempDir.resolve("lucee.json"), json);
+            String output = new ServerCommandHandler(true, tempDir).executeCommand("server", new String[] {verb, "--dry-run"});
+            assertTrue(output.contains("JMX monitoring is enabled") && output.contains("without authentication"),
+                    verb + " --dry-run must print the refusal, got: " + output);
+            assertFalse(output.contains("DRY RUN: Server configuration that would be used"),
+                    verb + " --dry-run must not preview a config that start would refuse");
+        }
+    }
 }

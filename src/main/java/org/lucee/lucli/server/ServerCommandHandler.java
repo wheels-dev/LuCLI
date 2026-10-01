@@ -345,6 +345,10 @@ public class ServerCommandHandler {
 
         // Apply one-shot CLI overrides in memory for this invocation.
         LuceeServerManager.applyStartConfigOverrides(finalConfig, startConfigOverrides);
+        String jmxRefusal = jmxConfigRefusal(finalConfig);
+        if (jmxRefusal != null) {
+            return formatOutput(jmxRefusal, true);
+        }
 
         if (prewarm) {
             if (versionOverride != null && !versionOverride.trim().isEmpty()) {
@@ -874,6 +878,10 @@ public class ServerCommandHandler {
                 }
             }
             LuceeServerManager.applyStartConfigOverrides(finalConfig, startConfigOverrides);
+            String jmxRefusal = jmxConfigRefusal(finalConfig);
+            if (jmxRefusal != null) {
+                return formatOutput(jmxRefusal, true);
+            }
             
             StringBuilder result = new StringBuilder();
             result.append("📋 DRY RUN: Server configuration that would be used:\n\n");
@@ -2570,6 +2578,21 @@ public class ServerCommandHandler {
     /**
      * Format output for the appropriate mode
      */
+    /**
+     * Validate the JMX settings up front, so a start, run or dry run that
+     * enables unauthenticated JMX on a non-loopback address is refused with a
+     * clear message (and a non-zero exit) before anything is built.
+     * Returns the error text, or null when the config is acceptable.
+     */
+    private static String jmxConfigRefusal(LuceeServerConfig.ServerConfig config) {
+        try {
+            LuceeServerConfig.jmxJvmOptions(config);
+            return null;
+        } catch (IllegalStateException e) {
+            return "\u274c " + e.getMessage();
+        }
+    }
+
     private String formatOutput(String message, boolean isError) {
         if (isTerminalMode) {
             // Return the message for the terminal to display
