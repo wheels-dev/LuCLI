@@ -50,6 +50,23 @@ Conflict resolutions preserve the new helpers/tests from both sides. The #123
 changelog resolution preserves the base's existing 0.7.0 section and adds the fix
 under Unreleased.
 
+## 0.6.2.2 queue
+
+Base: the shipped fork release `v0.6.2.1` (`43b56f6`). Everything in the 0.6.2.1 queue
+above carries forward unchanged.
+
+| Order | Change | Purpose |
+|---|---|---|
+| 6 | wheels-dev/LuCLI [#14](https://github.com/wheels-dev/LuCLI/pull/14), squash `5255307` (issue [#13](https://github.com/wheels-dev/LuCLI/issues/13)) | Dev servers listen on `127.0.0.1` by default; `bindAddress` / `--host` opt-in |
+
+Upstream PR to `cybersonic/LuCLI`: **pending** (drafted; it is opened only after the
+maintainer's OK). Until upstream merges it, it is a documented fork patch.
+
+Behaviour change for users of the fork: a dev server is no longer reachable from
+other machines unless `bindAddress` (or `--host`) opts in. Clients that resolve
+`localhost` only to `::1` need `127.0.0.1` (documented). A second loopback connector
+on `::1` is a possible follow-up, not part of this release.
+
 ## Approved patch mapping
 
 Stable patch IDs (original → assembled); a differing ID below is only diff
