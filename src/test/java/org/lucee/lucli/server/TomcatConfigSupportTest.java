@@ -420,4 +420,33 @@ public class TomcatConfigSupportTest {
         }
         return baos.toString(StandardCharsets.UTF_8);
     }
+
+    // ── displayPortDetails: listen address and all-interfaces warning ─────
+
+    private static String portDetailsFor(String bindAddress) {
+        LuceeServerConfig.ServerConfig config = new LuceeServerConfig.ServerConfig();
+        config.name = "warn-test";
+        config.port = 8123;
+        config.bindAddress = bindAddress;
+        java.io.PrintStream original = System.out;
+        ByteArrayOutputStream captured = new ByteArrayOutputStream();
+        try {
+            System.setOut(new java.io.PrintStream(captured, true));
+            TomcatConfigSupport.displayPortDetails(config, false, "Tomcat");
+        } finally {
+            System.setOut(original);
+        }
+        return captured.toString();
+    }
+
+    @Test
+    void displayPortDetails_showsTheListenAddress_andWarnsOnlyForAllInterfaces() {
+        String local = portDetailsFor(null);
+        assertTrue(local.contains("Listening on:  127.0.0.1"), local);
+        assertFalse(local.contains("all network interfaces"), local);
+
+        String all = portDetailsFor("0.0.0.0");
+        assertTrue(all.contains("Listening on:  0.0.0.0"), all);
+        assertTrue(all.contains("Listening on all network interfaces"), all);
+    }
 }

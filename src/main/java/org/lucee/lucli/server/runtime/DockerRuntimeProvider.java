@@ -54,6 +54,11 @@ public final class DockerRuntimeProvider implements RuntimeProvider {
         LuceeServerConfig.RuntimeConfig rt = LuceeServerConfig.getEffectiveRuntime(config);
 
         System.out.println("Using runtime.type=\"docker\" (experimental)");
+        System.out.println("  Listening on:  " + LuceeServerConfig.getEffectiveBindAddress(config)
+                + " (host side of the published port)");
+        if (LuceeServerConfig.isBindAllInterfaces(config)) {
+            System.out.println("\u26a0\ufe0f  Publishing on all network interfaces: other machines on your network can reach this server.");
+        }
 
         // Resolve port conflicts similar to other runtimes and fail fast with
         // helpful diagnostics when conflicts exist.

@@ -1948,4 +1948,55 @@ public class LuceeServerConfigTest {
             assertFalse(LuceeServerConfig.isBindAllInterfaces(config), one);
         }
     }
+
+    private static LuceeServerConfig.ServerConfig jmxConfig(String bindAddress, String... extraJvmArgs) {
+        LuceeServerConfig.ServerConfig config = new LuceeServerConfig.ServerConfig();
+        config.monitoring.enabled = true;
+        config.monitoring.jmx.port = 9876;
+        config.bindAddress = bindAddress;
+        config.jvm.additionalArgs = extraJvmArgs;
+        return config;
+    }
+
+    @Test
+    void jmxJvmOptions_emptyWhenMonitoringIsOff() {
+        assertTrue(LuceeServerConfig.jmxJvmOptions(new LuceeServerConfig.ServerConfig()).isEmpty());
+    }
+
+    @Test
+    void jmxJvmOptions_listenOnTheLoopbackBindAddress() {
+        List<String> opts = LuceeServerConfig.jmxJvmOptions(jmxConfig(null));
+        assertTrue(opts.contains("-Dcom.sun.management.jmxremote.host=127.0.0.1"), opts.toString());
+        assertTrue(opts.contains("-Djava.rmi.server.hostname=127.0.0.1"), opts.toString());
+        assertTrue(opts.contains("-Dcom.sun.management.jmxremote.port=9876"), opts.toString());
+        assertTrue(opts.contains("-Dcom.sun.management.jmxremote.rmi.port=9876"), opts.toString());
+    }
+
+    @Test
+    void jmxJvmOptions_refuseUnauthenticatedJmxOffLoopback() {
+        for (String bind : new String[] {"0.0.0.0", "*", "192.168.1.10"}) {
+            IllegalStateException e = assertThrows(IllegalStateException.class,
+                    () -> LuceeServerConfig.jmxJvmOptions(jmxConfig(bind)), bind);
+            assertTrue(e.getMessage().contains("without authentication"), e.getMessage());
+        }
+    }
+
+    @Test
+    void jmxJvmOptions_allowAnyBindWhenTheUserConfiguresAuthentication() {
+        List<String> opts = LuceeServerConfig.jmxJvmOptions(jmxConfig("0.0.0.0",
+                "-Dcom.sun.management.jmxremote.authenticate=true",
+                "-Dcom.sun.management.jmxremote.ssl=true"));
+        assertTrue(opts.contains("-Dcom.sun.management.jmxremote.host=0.0.0.0"), opts.toString());
+        assertFalse(opts.contains("-Dcom.sun.management.jmxremote.authenticate=false"), opts.toString());
+        assertFalse(opts.contains("-Dcom.sun.management.jmxremote.ssl=false"), opts.toString());
+        assertFalse(opts.stream().anyMatch(o -> o.startsWith("-Djava.rmi.server.hostname=")),
+                "a wildcard is not a usable RMI hostname: " + opts);
+    }
+
+    @Test
+    void isBindAllInterfaces_includesTheExpandedIpv6Wildcard() {
+        LuceeServerConfig.ServerConfig config = new LuceeServerConfig.ServerConfig();
+        config.bindAddress = "0:0:0:0:0:0:0:0";
+        assertTrue(LuceeServerConfig.isBindAllInterfaces(config));
+    }
 }

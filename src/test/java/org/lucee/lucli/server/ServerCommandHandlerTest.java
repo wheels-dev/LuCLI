@@ -507,4 +507,39 @@ class ServerCommandHandlerTest {
         assertTrue(output.contains(expectedPhysicalPath),
                 "Dry-run include-lucee output should contain dependency mapping physical path");
     }
+
+    private String dryRunWith(String... args) throws Exception {
+        Files.writeString(tempDir.resolve("lucee.json"), "{\"name\":\"bind-flag-test\",\"port\":8080}");
+        return new ServerCommandHandler(true, tempDir).executeCommand("server", args);
+    }
+
+    private static boolean showsBindAddress(String output, String value) {
+        return output.contains("\"bindAddress\" : \"" + value + "\"") || output.contains("\"bindAddress\": \"" + value + "\"");
+    }
+
+    @Test
+    void serverStartDryRun_hostFlagSetsTheBindAddress() throws Exception {
+        assertTrue(showsBindAddress(dryRunWith("start", "--dry-run", "--host", "0.0.0.0"), "0.0.0.0"));
+        assertTrue(showsBindAddress(dryRunWith("start", "--dry-run", "--host=192.168.1.10"), "192.168.1.10"));
+    }
+
+    @Test
+    void serverRunDryRun_hostFlagSetsTheBindAddress() throws Exception {
+        assertTrue(showsBindAddress(dryRunWith("run", "--dry-run", "--host", "0.0.0.0"), "0.0.0.0"));
+        assertTrue(showsBindAddress(dryRunWith("run", "--dry-run", "--host=::1"), "::1"));
+    }
+
+    @Test
+    void dryRun_refusesUnauthenticatedJmxOffLoopback_forStartAndRun() throws Exception {
+        String json = "{\"name\":\"jmx-refusal-test\",\"port\":8080,\"bindAddress\":\"0.0.0.0\","
+                + "\"monitoring\":{\"enabled\":true,\"jmx\":{\"port\":8999}}}";
+        for (String verb : new String[] {"start", "run"}) {
+            Files.writeString(tempDir.resolve("lucee.json"), json);
+            String output = new ServerCommandHandler(true, tempDir).executeCommand("server", new String[] {verb, "--dry-run"});
+            assertTrue(output.contains("JMX monitoring is enabled") && output.contains("without authentication"),
+                    verb + " --dry-run must print the refusal, got: " + output);
+            assertFalse(output.contains("DRY RUN: Server configuration that would be used"),
+                    verb + " --dry-run must not preview a config that start would refuse");
+        }
+    }
 }
