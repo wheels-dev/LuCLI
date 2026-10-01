@@ -159,4 +159,17 @@ public class TomcatServerXmlPatcherTest {
         String withOwnAddress = SERVER_XML.replace("protocol=\"AJP/1.3\"", "protocol=\"AJP/1.3\" address=\"::1\"");
         assertEquals("::1", connector(patch(withOwnAddress, config), "AJP").getAttribute("address"));
     }
+
+    @Test
+    void anyOtherConnectorWithoutAnAddress_listensOnTheBindAddress() throws Exception {
+        String nio2 = SERVER_XML.replace(
+                "<Connector port=\"8080\" protocol=\"HTTP/1.1\" />",
+                "<Connector port=\"8080\" protocol=\"org.apache.coyote.http11.Http11Nio2Protocol\" />"
+                        + "<Connector port=\"8090\" protocol=\"org.apache.coyote.http11.Http11AprProtocol\" address=\"10.0.0.5\" />");
+        String result = patch(nio2, baseConfig());
+        assertEquals("127.0.0.1", connector(result, "Nio2").getAttribute("address"),
+                "a connector the protocol allow-list doesn't name must not stay on all interfaces");
+        assertEquals("10.0.0.5", connector(result, "Apr").getAttribute("address"),
+                "an explicit address in server.xml is kept");
+    }
 }

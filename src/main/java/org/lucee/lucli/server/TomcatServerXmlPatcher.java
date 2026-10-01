@@ -686,25 +686,24 @@ public class TomcatServerXmlPatcher {
         // If AJP is disabled, remove AJP connectors
         if (config.ajp == null || !config.ajp.enabled) {
             removeAjpConnectors(document);
-        } else {
-            applyAjpBindAddress(document, config);
         }
+        applyRemainingConnectorAddresses(document, config);
     }
 
     /**
-     * An enabled AJP connector without its own address listens on the same
-     * address as HTTP. An address the vendor server.xml already sets is kept.
+     * Fail-safe for the listen address: every Connector still without an
+     * address (any protocol: AJP, Nio2, APR, ...) listens on the bind address.
+     * The main HTTP and HTTPS connectors already got it; an address the
+     * server.xml sets on another connector is kept.
      */
-    private void applyAjpBindAddress(Document document, LuceeServerConfig.ServerConfig config) {
+    private void applyRemainingConnectorAddresses(Document document, LuceeServerConfig.ServerConfig config) {
         NodeList connectors = document.getElementsByTagName("Connector");
         for (int i = 0; i < connectors.getLength(); i++) {
             if (!(connectors.item(i) instanceof Element)) {
                 continue;
             }
             Element connector = (Element) connectors.item(i);
-            String protocol = connector.getAttribute("protocol");
-            if (protocol != null && protocol.toLowerCase(java.util.Locale.ROOT).contains("ajp")
-                    && connector.getAttribute("address").isEmpty()) {
+            if (connector.getAttribute("address").isEmpty()) {
                 connector.setAttribute("address", tomcatBindAddress(config));
             }
         }
