@@ -3274,12 +3274,7 @@ public class LuceeServerManager {
         opts.add("-Xmx" + config.jvm.maxMemory);
         
         // JMX configuration if monitoring is enabled
-        if (config.monitoring != null && config.monitoring.enabled && config.monitoring.jmx != null) {
-            opts.add("-Dcom.sun.management.jmxremote");
-            opts.add("-Dcom.sun.management.jmxremote.port=" + config.monitoring.jmx.port);
-            opts.add("-Dcom.sun.management.jmxremote.authenticate=false");
-            opts.add("-Dcom.sun.management.jmxremote.ssl=false");
-        }
+        opts.addAll(LuceeServerConfig.jmxJvmOptions(config));
         
         // Lucee extensions configuration is passed via the LUCEE_EXTENSIONS
         // environment variable in launchServerProcess, which avoids quoting

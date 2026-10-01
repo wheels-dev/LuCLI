@@ -747,7 +747,84 @@ public class LuceeServerConfig {
      */
     public static boolean isBindAllInterfaces(ServerConfig config) {
         String addr = getEffectiveBindAddress(config);
-        return "0.0.0.0".equals(addr) || "::".equals(addr) || "[::]".equals(addr) || "*".equals(addr);
+        return "0.0.0.0".equals(addr) || "::".equals(addr) || "[::]".equals(addr) || "*".equals(addr)
+                || "0:0:0:0:0:0:0:0".equals(addr) || "[0:0:0:0:0:0:0:0]".equals(addr);
+    }
+
+    /**
+     * True when the effective listen address is a loopback address (or the
+     * name localhost), i.e. only this machine can connect.
+     */
+    public static boolean isLoopbackBind(ServerConfig config) {
+        String addr = getEffectiveBindAddress(config).toLowerCase(java.util.Locale.ROOT);
+        if (addr.startsWith("[") && addr.endsWith("]")) {
+            addr = addr.substring(1, addr.length() - 1);
+        }
+        return "localhost".equals(addr) || "::1".equals(addr) || "0:0:0:0:0:0:0:1".equals(addr)
+                || addr.matches("127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}");
+    }
+
+    /**
+     * JVM options for the JMX agent when monitoring is enabled (empty list
+     * otherwise). The agent listens on the server's bind address: the JMX
+     * registry and its RMI connector share one port, and the RMI hostname is
+     * the bind address, so neither falls back to every interface.
+     *
+     * LuCLI starts JMX without authentication. On a bind address other than
+     * loopback that would expose an unauthenticated JMX endpoint to the
+     * network, so it is refused unless the user configures authentication
+     * themselves via jvm.additionalArgs
+     * (-Dcom.sun.management.jmxremote.authenticate=true plus a password file).
+     *
+     * @throws IllegalStateException for unauthenticated JMX on a non-loopback bind
+     */
+    public static List<String> jmxJvmOptions(ServerConfig config) {
+        List<String> opts = new ArrayList<>();
+        if (config == null || config.monitoring == null || !config.monitoring.enabled || config.monitoring.jmx == null) {
+            return opts;
+        }
+        boolean userAuth = hasJvmArg(config, "-Dcom.sun.management.jmxremote.authenticate=true");
+        boolean userSsl = hasJvmArgPrefix(config, "-Dcom.sun.management.jmxremote.ssl=");
+        if (!userAuth && !isLoopbackBind(config)) {
+            throw new IllegalStateException(
+                "JMX monitoring is enabled and the server listens on " + getEffectiveBindAddress(config)
+                + ", but LuCLI starts JMX without authentication. Listen on 127.0.0.1 (drop bindAddress/--host),"
+                + " disable monitoring, or configure JMX authentication in jvm.additionalArgs"
+                + " (-Dcom.sun.management.jmxremote.authenticate=true with a password file).");
+        }
+        String bind = getEffectiveBindAddress(config);
+        String jmxHost = "*".equals(bind) ? "0.0.0.0" : bind;
+        int port = config.monitoring.jmx.port;
+        opts.add("-Dcom.sun.management.jmxremote");
+        opts.add("-Dcom.sun.management.jmxremote.port=" + port);
+        opts.add("-Dcom.sun.management.jmxremote.rmi.port=" + port);
+        opts.add("-Dcom.sun.management.jmxremote.host=" + jmxHost);
+        if (!isBindAllInterfaces(config)) {
+            opts.add("-Djava.rmi.server.hostname=" + jmxHost);
+        }
+        if (!userAuth) {
+            opts.add("-Dcom.sun.management.jmxremote.authenticate=false");
+        }
+        if (!userSsl) {
+            opts.add("-Dcom.sun.management.jmxremote.ssl=false");
+        }
+        return opts;
+    }
+
+    private static boolean hasJvmArg(ServerConfig config, String arg) {
+        if (config.jvm == null || config.jvm.additionalArgs == null) return false;
+        for (String a : config.jvm.additionalArgs) {
+            if (a != null && arg.equals(a.trim())) return true;
+        }
+        return false;
+    }
+
+    private static boolean hasJvmArgPrefix(ServerConfig config, String prefix) {
+        if (config.jvm == null || config.jvm.additionalArgs == null) return false;
+        for (String a : config.jvm.additionalArgs) {
+            if (a != null && a.trim().startsWith(prefix)) return true;
+        }
+        return false;
     }
 
     /**

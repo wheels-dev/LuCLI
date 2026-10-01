@@ -159,11 +159,8 @@ public class JettyBaseConfigGenerator {
         jvmIni.append("-Djava.io.tmpdir=").append(jettyBase.resolve("tmp").toAbsolutePath()).append("\n");
 
         // JMX configuration if monitoring is enabled
-        if (config.monitoring != null && config.monitoring.enabled && config.monitoring.jmx != null) {
-            jvmIni.append("-Dcom.sun.management.jmxremote\n");
-            jvmIni.append("-Dcom.sun.management.jmxremote.port=").append(config.monitoring.jmx.port).append("\n");
-            jvmIni.append("-Dcom.sun.management.jmxremote.authenticate=false\n");
-            jvmIni.append("-Dcom.sun.management.jmxremote.ssl=false\n");
+        for (String jmxOpt : LuceeServerConfig.jmxJvmOptions(config)) {
+            jvmIni.append(jmxOpt).append("\n");
         }
 
         // Additional JVM args from lucee.json

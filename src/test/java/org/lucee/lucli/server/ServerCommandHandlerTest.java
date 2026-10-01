@@ -507,4 +507,25 @@ class ServerCommandHandlerTest {
         assertTrue(output.contains(expectedPhysicalPath),
                 "Dry-run include-lucee output should contain dependency mapping physical path");
     }
+
+    private String dryRunWith(String... args) throws Exception {
+        Files.writeString(tempDir.resolve("lucee.json"), "{\"name\":\"bind-flag-test\",\"port\":8080}");
+        return new ServerCommandHandler(true, tempDir).executeCommand("server", args);
+    }
+
+    private static boolean showsBindAddress(String output, String value) {
+        return output.contains("\"bindAddress\" : \"" + value + "\"") || output.contains("\"bindAddress\": \"" + value + "\"");
+    }
+
+    @Test
+    void serverStartDryRun_hostFlagSetsTheBindAddress() throws Exception {
+        assertTrue(showsBindAddress(dryRunWith("start", "--dry-run", "--host", "0.0.0.0"), "0.0.0.0"));
+        assertTrue(showsBindAddress(dryRunWith("start", "--dry-run", "--host=192.168.1.10"), "192.168.1.10"));
+    }
+
+    @Test
+    void serverRunDryRun_hostFlagSetsTheBindAddress() throws Exception {
+        assertTrue(showsBindAddress(dryRunWith("run", "--dry-run", "--host", "0.0.0.0"), "0.0.0.0"));
+        assertTrue(showsBindAddress(dryRunWith("run", "--dry-run", "--host=::1"), "::1"));
+    }
 }

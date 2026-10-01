@@ -41,4 +41,22 @@ public class JettyBaseConfigGeneratorTest {
         assertTrue(httpIniFor("0.0.0.0").contains("jetty.http.host=0.0.0.0\n"));
         assertTrue(httpIniFor("*").contains("jetty.http.host=0.0.0.0\n"));
     }
+
+    @Test
+    void jvmIni_startsJmxOnTheBindAddress() throws Exception {
+        LuceeServerConfig.ServerConfig config = new LuceeServerConfig.ServerConfig();
+        config.name = "jetty-jmx-test";
+        config.port = 8182;
+        config.monitoring.enabled = true;
+        config.monitoring.jmx.port = 9877;
+        Path jettyBase = tempDir.resolve("jmx-base-" + System.nanoTime());
+        Files.createDirectories(jettyBase.resolve("start.d"));
+        Method m = JettyBaseConfigGenerator.class.getDeclaredMethod("generateJvmIni",
+                Path.class, LuceeServerConfig.ServerConfig.class, Path.class);
+        m.setAccessible(true);
+        m.invoke(new JettyBaseConfigGenerator(), jettyBase, config, tempDir);
+        String jvmIni = Files.readString(jettyBase.resolve("start.d").resolve("jvm.ini"));
+        assertTrue(jvmIni.contains("-Dcom.sun.management.jmxremote.host=127.0.0.1\n"), jvmIni);
+        assertTrue(jvmIni.contains("-Dcom.sun.management.jmxremote.rmi.port=9877\n"), jvmIni);
+    }
 }
