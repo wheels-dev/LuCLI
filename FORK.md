@@ -60,8 +60,12 @@ above carries forward unchanged.
 | 6 | wheels-dev/LuCLI [#14](https://github.com/wheels-dev/LuCLI/pull/14), squash `5255307` (issue [#13](https://github.com/wheels-dev/LuCLI/issues/13)) | Dev servers listen on `127.0.0.1` by default; `bindAddress` / `--host` opt-in |
 | 7 | release branch `78e2f40` + the dry-run validation commit after it (review follow-ups on #15) | JMX monitoring honours `bindAddress` (registry, RMI connector, RMI hostname); unauthenticated JMX is refused on a non-loopback bind unless authentication is configured in `jvm.additionalArgs`, including in `--dry-run`; schema default for `monitoring.enabled` corrected to `false`; the Docker runtime prints its listen address |
 
-Upstream PR to `cybersonic/LuCLI` (rows 6 and 7): **pending maintainer OK** (drafted;
-it is opened only after that OK). Until upstream merges it, it is a documented fork patch.
+Upstream PRs to `cybersonic/LuCLI`:
+- Row 6 (listen on `127.0.0.1` by default): [cybersonic/LuCLI#132](https://github.com/cybersonic/LuCLI/pull/132),
+  a `cherry-pick -x` of `5255307` onto upstream `main` `988073f`.
+- Row 7 (JMX follows `bindAddress`): **pending maintainer OK**, opened separately.
+
+Until upstream merges them, they are documented fork patches.
 
 Behaviour change for users of the fork: a dev server is no longer reachable from
 other machines unless `bindAddress` (or `--host`) opts in. With `monitoring.enabled`,
