@@ -20,7 +20,8 @@ public class JettyBaseConfigGeneratorTest {
         config.name = "jetty-bind-test";
         config.port = 8181;
         config.bindAddress = bindAddress;
-        Path jettyBase = tempDir.resolve("base-" + (bindAddress == null ? "default" : bindAddress.replace(':', '_')));
+        // Only [A-Za-z0-9] in the directory name: "*" and ":" are invalid in Windows paths.
+        Path jettyBase = tempDir.resolve("base-" + (bindAddress == null ? "default" : bindAddress.replaceAll("[^A-Za-z0-9]", "_")) + "-" + System.nanoTime());
         Files.createDirectories(jettyBase.resolve("start.d"));
 
         Method m = JettyBaseConfigGenerator.class.getDeclaredMethod("generateStartIniFiles",
