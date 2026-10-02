@@ -85,6 +85,12 @@ Upstream PR to `cybersonic/LuCLI` (row 8): maintainer approved (2026-10-02); ope
 it, it is a documented fork patch. Module authors whose argument validation rejects unknown
 keys must accept or remove `__lucliMcpCall` (Wheels: wheels-dev/wheels#3980).
 
+Release order: wheels-dev/wheels#3980 (Wheels drops the marker in `structuredArgs()` and
+`ArgSpec`, and uses it to refuse `generate type=app` over MCP) merges FIRST and is safe on
+today's LuCLI. Only then does a Wheels build pin a LuCLI with row 8: before #3980, Wheels'
+strict argument parsing rejects the marker (`toArgv()` turns it into `--__lucliMcpCall`), so
+every MCP `tools/call` would fail.
+
 ## Approved patch mapping
 
 Stable patch IDs (original → assembled); a differing ID below is only diff
