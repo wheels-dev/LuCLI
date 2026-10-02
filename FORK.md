@@ -71,6 +71,20 @@ authentication is configured. Clients that resolve
 `localhost` only to `::1` need `127.0.0.1` (documented). A second loopback connector
 on `::1` is a possible follow-up, not part of this release.
 
+## Next queue (unreleased)
+
+Base: the shipped fork release `v0.6.2.2` (`b3c01ce`). Everything above carries forward.
+No release is tagged for this queue yet; tagging needs the Wheels release owner's go.
+
+| Order | Change | Purpose |
+|---|---|---|
+| 8 | wheels-dev/LuCLI [#19](https://github.com/wheels-dev/LuCLI/pull/19) (issue [#17](https://github.com/wheels-dev/LuCLI/issues/17)) | A module function run by an MCP `tools/call` receives the runtime-owned `__lucliMcpCall=true` argument; any caller-supplied argument of that name is dropped, and a terminal call never carries it |
+
+Upstream PR to `cybersonic/LuCLI` (row 8): maintainer approved (2026-10-02); opened as a
+`cherry-pick -x` onto upstream `main` once #19 is reviewed and green. Until upstream merges
+it, it is a documented fork patch. Module authors whose argument validation rejects unknown
+keys must accept or remove `__lucliMcpCall` (Wheels: wheels-dev/wheels#3980).
+
 ## Approved patch mapping
 
 Stable patch IDs (original → assembled); a differing ID below is only diff
