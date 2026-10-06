@@ -799,6 +799,22 @@ public class LuCLI implements Callable<Integer> {
         return rewriteModuleHelpOrReserved(args);
     }
 
+    /** Root options that take their value as the next token (when not written --opt=value). */
+    static final Set<String> ROOT_OPTIONS_WITH_VALUE = Set.of("--env", "-e", "--envfile", "--timeout");
+
+    /**
+     * Index of the first token after the module name ({@code args[0]}) that isn't a root
+     * option or a root option's separate value. Returns {@code args.length} when there is none.
+     */
+    static int leadingPositionAfterRootOptions(String[] args) {
+        int i = 1;
+        while (i < args.length && args[i].startsWith("-") && !"--help".equals(args[i]) && !"-h".equals(args[i])) {
+            boolean takesNext = ROOT_OPTIONS_WITH_VALUE.contains(args[i]);
+            i += takesNext ? 2 : 1;
+        }
+        return Math.min(i, args.length);
+    }
+
     /**
      * Rewrite a module invocation whose args would otherwise be intercepted by
      * picocli's root subcommands. Assumes {@code args[0]} is already an
@@ -839,9 +855,14 @@ public class LuCLI implements Callable<Integer> {
         // user invoked directly, e.g. `wheels server`) — only positionals at
         // args[2..] belong to the module, so a reserved token there means
         // picocli would hijack it to a root subcommand.
+        // The leading position is the first token after the module name that isn't a
+        // root option: `wheels --timing cfml 'x'` invokes the root `cfml` subcommand
+        // with --timing, exactly like `wheels cfml 'x'` (it used to be handed to the
+        // module because `cfml` sat at index 2).
+        int lead = leadingPositionAfterRootOptions(args);
         boolean hasReservedPositional = false;
-        if (!RESERVED_ROOT_SUBCOMMANDS.contains(args[1])) {
-            for (int i = 2; i < args.length; i++) {
+        if (lead < args.length && !RESERVED_ROOT_SUBCOMMANDS.contains(args[lead])) {
+            for (int i = lead + 1; i < args.length; i++) {
                 if (RESERVED_ROOT_SUBCOMMANDS.contains(args[i])) {
                     hasReservedPositional = true;
                     break;
