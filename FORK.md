@@ -83,6 +83,10 @@ No release is tagged for this queue yet; tagging needs the Wheels release owner'
 | Order | Change | Purpose |
 |---|---|---|
 | 8 | wheels-dev/LuCLI [#19](https://github.com/wheels-dev/LuCLI/pull/19) (issue [#17](https://github.com/wheels-dev/LuCLI/issues/17)) | A module function run by an MCP `tools/call` receives the runtime-owned `__lucliMcpCall=true` argument; any caller-supplied argument of that name is dropped, and a terminal call never carries it |
+| 9 | wheels-dev/LuCLI [#21](https://github.com/wheels-dev/LuCLI/pull/21) (issue: upstream [cybersonic/LuCLI#136](https://github.com/cybersonic/LuCLI/issues/136)) | `--env` / `--envfile` reach a module run through the module shortcut or an aliased binary (re-injected at the root position) |
+| 10 | wheels-dev/LuCLI [#22](https://github.com/wheels-dev/LuCLI/pull/22) (issue: upstream [cybersonic/LuCLI#140](https://github.com/cybersonic/LuCLI/issues/140)) | REPL / terminal history and `settings.json` follow the active LuCLI home instead of `user.home`; legacy `~/.lucli/settings.json` read once and copied |
+| 11 | wheels-dev/LuCLI [#23](https://github.com/wheels-dev/LuCLI/pull/23) (issue: upstream [cybersonic/LuCLI#139](https://github.com/cybersonic/LuCLI/issues/139)) | `server start --dry-run` no longer writes a default `lucee.json`; the preview shows `--name` |
+| 12 | wheels-dev/LuCLI [#24](https://github.com/wheels-dev/LuCLI/pull/24) (fork-only: follows row 2 / upstream PR [cybersonic/LuCLI#124](https://github.com/cybersonic/LuCLI/pull/124)) | Root options before a reserved root subcommand under an aliased binary run that subcommand instead of the module (`wheels --timing cfml 'x'`) |
 | 13 | wheels-dev/LuCLI [#26](https://github.com/wheels-dev/LuCLI/pull/26) (issue: upstream [cybersonic/LuCLI#137](https://github.com/cybersonic/LuCLI/issues/137)) | `lucli run <file>.cfm` runs the built-in variables setup inside `<cfscript>` instead of printing it |
 
 Upstream (row 8): issue [cybersonic/LuCLI#133](https://github.com/cybersonic/LuCLI/issues/133),

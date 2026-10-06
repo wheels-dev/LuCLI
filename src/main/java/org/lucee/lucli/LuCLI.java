@@ -417,25 +417,45 @@ public class LuCLI implements Callable<Integer> {
         verbose("Executing module shortcut: " + moduleName + 
             " (equivalent to 'lucli modules run " + moduleName + " " + String.join(" ", args) + "')");
         
+        List<String> cmdArgs = moduleShortcutArgs(moduleName, args, isVerbose(), isDebug(), envOption, envFileOption);
+        return spec.commandLine().execute(cmdArgs.toArray(new String[0]));
+    }
+
+    /**
+     * The argument list the module shortcut re-executes on the root command:
+     * {@code [--env=<env>] [--envfile=<path>] modules run <module> <args...> [--verbose] [--debug]}.
+     *
+     * Re-executing resets the root's options, so root-level flags the module must
+     * still see are re-injected. {@code --env} / {@code --envfile} go BEFORE
+     * {@code modules}, at the root position, where the execution strategy reads them
+     * into {@link #currentEnvironment} / {@link #envFilePath}; without them the
+     * module saw a null environment (upstream cybersonic/LuCLI#136).
+     * {@code --verbose} / {@code --debug} go after the module args, where the
+     * module's own arg parser reads them (e.g. the wheels module's
+     * {@code doctor --verbose}), and the subcommand stays the first positional.
+     */
+    static List<String> moduleShortcutArgs(String moduleName, String[] args, boolean verbose, boolean debug,
+            String env, String envFile) {
         List<String> cmdArgs = new ArrayList<>();
+        if (env != null && !env.isEmpty()) {
+            cmdArgs.add("--env=" + env);
+        }
+        if (envFile != null && !envFile.isEmpty()) {
+            cmdArgs.add("--envfile=" + envFile);
+        }
         cmdArgs.add("modules");
         cmdArgs.add("run");
         cmdArgs.add(moduleName);
         if (args != null && args.length > 0) {
             cmdArgs.addAll(Arrays.asList(args));
         }
-        // Re-inject root-level flags that picocli consumed at the root before the
-        // module shortcut dispatched, so the module can see them (e.g. the wheels
-        // module's `doctor --verbose` / `stats --verbose` / `test --verbose`).
-        // Appended AFTER the module args so the subcommand stays the first
-        // positional; the module's arg parser reads --verbose/--debug from there.
-        if (isVerbose()) {
+        if (verbose) {
             cmdArgs.add("--verbose");
         }
-        if (isDebug()) {
+        if (debug) {
             cmdArgs.add("--debug");
         }
-        return spec.commandLine().execute(cmdArgs.toArray(new String[0]));
+        return cmdArgs;
     }
 
     /**
@@ -769,6 +789,22 @@ public class LuCLI implements Callable<Integer> {
         return rewriteModuleHelpOrReserved(args);
     }
 
+    /** Root options that take their value as the next token (when not written --opt=value). */
+    static final Set<String> ROOT_OPTIONS_WITH_VALUE = Set.of("--env", "-e", "--envfile", "--timeout");
+
+    /**
+     * Index of the first token after the module name ({@code args[0]}) that isn't a root
+     * option or a root option's separate value. Returns {@code args.length} when there is none.
+     */
+    static int leadingPositionAfterRootOptions(String[] args) {
+        int i = 1;
+        while (i < args.length && args[i].startsWith("-") && !"--help".equals(args[i]) && !"-h".equals(args[i])) {
+            boolean takesNext = ROOT_OPTIONS_WITH_VALUE.contains(args[i]);
+            i += takesNext ? 2 : 1;
+        }
+        return Math.min(i, args.length);
+    }
+
     /**
      * Rewrite a module invocation whose args would otherwise be intercepted by
      * picocli's root subcommands. Assumes {@code args[0]} is already an
@@ -809,9 +845,14 @@ public class LuCLI implements Callable<Integer> {
         // user invoked directly, e.g. `wheels server`) — only positionals at
         // args[2..] belong to the module, so a reserved token there means
         // picocli would hijack it to a root subcommand.
+        // The leading position is the first token after the module name that isn't a
+        // root option: `wheels --timing cfml 'x'` invokes the root `cfml` subcommand
+        // with --timing, exactly like `wheels cfml 'x'` (it used to be handed to the
+        // module because `cfml` sat at index 2).
+        int lead = leadingPositionAfterRootOptions(args);
         boolean hasReservedPositional = false;
-        if (!RESERVED_ROOT_SUBCOMMANDS.contains(args[1])) {
-            for (int i = 2; i < args.length; i++) {
+        if (lead < args.length && !RESERVED_ROOT_SUBCOMMANDS.contains(args[lead])) {
+            for (int i = lead + 1; i < args.length; i++) {
                 if (RESERVED_ROOT_SUBCOMMANDS.contains(args[i])) {
                     hasReservedPositional = true;
                     break;
