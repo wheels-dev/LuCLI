@@ -665,6 +665,7 @@ public class LuceeScriptEngine {
         // as plain text printed it before the template's output (upstream
         // cybersonic/LuCLI#137).
         String scriptWithVariables = scriptContent;
+        Timer.start("injectBuiltinVariables");
         try {
             BuiltinVariableManager variableManager = BuiltinVariableManager.getInstance(isVerboseMode(), isDebugMode());
             scriptWithVariables = wrapBuiltinSetupForTemplate(
@@ -673,10 +674,12 @@ public class LuceeScriptEngine {
             if (isDebugMode()) {
                 System.err.println("Warning: Failed to inject built-in variables: " + e.getMessage());
             }
+        } finally {
+            Timer.stop("injectBuiltinVariables");
         }
         
         if (isVerboseMode() || isDebugMode()) {
-            System.out.println("=== CFS Script with Built-in Variables ===");
+            System.out.println("=== CFM Template with Built-in Variables ===");
             System.out.println(scriptWithVariables);
             System.out.println("=== End Script ===");
         }
