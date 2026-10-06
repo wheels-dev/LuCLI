@@ -3,7 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ## Unreleased
-- **Fix: Hints Name the Binary You Ran:** User-facing hints such as "Use 'lucli server new' …", "Run 'lucli secrets init' …" or "run 'lucli modules list' …" always said `lucli`, also under an aliased binary (e.g. `wheels`). They now use `LuCLI.cliName()`, the active profile's name. picocli `@Command` help text (annotation constants) is unchanged. Adds `CliNameTest`.
+- **Fix: Hints Name the Binary You Ran:** User-facing hints such as "Use 'lucli server new' …", "Run 'lucli secrets init' …" or "run 'lucli modules list' …" always said `lucli`, also under an aliased binary (e.g. `wheels`). They now use `LuCLI.cliName()`, the active profile's name. The bundled `lang` module's "Use 'lucli lang help'" hint does the same. picocli `@Command` help text (annotation constants) is unchanged. Adds `CliNameTest`.
+
+- **Fix: The Bundled `lang` Module Compiles:** eight help strings in `modules/lang/Module.cfc` contained an unescaped `#` (`# e.g., …`), which CFML reads as an expression delimiter, so the module failed to compile ("Invalid identifier") and `lang` was unusable. They are escaped as `##`.
 
 - **Fix: `--env` / `--envfile` Reach Modules Run Through the Module Shortcut:** `lucli <module> … --env=x`, `lucli --env=x <module> …` and an aliased binary (`-Dlucli.binary.name=<module>`, e.g. `wheels start --env=prod`) re-execute `modules run …` on the root command, which reset the root's options, so the module saw `LuCLI.getCurrentEnvironment() == null` (only `LUCLI_ENV` worked). The shortcut now re-injects `--env` / `--envfile` at the root position, as it already did for `--verbose` / `--debug` (after the module args). Upstream: cybersonic/LuCLI#136. Adds `ModuleShortcutArgsTest`.
 
