@@ -407,7 +407,7 @@ public class ServerCommandHandler {
                 result.append("     - ").append(certsDir.resolve("keystore.pass")).append("\n");
             }
 
-            result.append("\nYou can now inspect this instance or start it later with 'lucli server start' (without --create-config).\n");
+            result.append("\nYou can now inspect this instance or start it later with '" + org.lucee.lucli.LuCLI.cliName() + " server start' (without --create-config).\n");
             return formatOutput(result.toString(), false);
         }
 
@@ -1621,7 +1621,7 @@ public class ServerCommandHandler {
             missing.append("❌ Config file not found: ")
                    .append(cfgPath.toAbsolutePath())
                    .append("\n");
-            missing.append("   Use 'lucli server new' to create a new lucee.json for this project.\n");
+            missing.append("   Use '" + org.lucee.lucli.LuCLI.cliName() + " server new' to create a new lucee.json for this project.\n");
             return formatOutput(missing.toString(), true);
         }
 
@@ -1770,7 +1770,7 @@ public class ServerCommandHandler {
             missing.append("❌ Config file not found: ")
                    .append(cfgPath.toAbsolutePath())
                    .append("\n");
-            missing.append("   Use 'lucli server new' to create a new lucee.json for this project.\n");
+            missing.append("   Use '" + org.lucee.lucli.LuCLI.cliName() + " server new' to create a new lucee.json for this project.\n");
             return formatOutput(missing.toString(), true);
         }
 
@@ -2129,9 +2129,9 @@ public class ServerCommandHandler {
             if (existing != null && existing.locked && !update) {
                 StringBuilder msg = new StringBuilder();
                 msg.append("❌ Server configuration is already locked for env '").append(envKey).append("'.\n");
-                msg.append("   Use 'lucli server lock --env=").append("_default".equals(envKey) ? "" : envKey)
+                msg.append("   Use '" + org.lucee.lucli.LuCLI.cliName() + " server lock --env=").append("_default".equals(envKey) ? "" : envKey)
                    .append(" --update' to refresh from the current ").append(cfgFile).append(".\n");
-                msg.append("   Or 'lucli server unlock");
+                msg.append("   Or '" + org.lucee.lucli.LuCLI.cliName() + " server unlock");
                 if (!"_default".equals(envKey)) {
                     msg.append(" --env=").append(envKey);
                 }
@@ -2153,7 +2153,7 @@ public class ServerCommandHandler {
             StringBuilder result = new StringBuilder();
             result.append("🔒 Server configuration locked for env '").append(envKey).append("'.\n");
             result.append("   Source file: ").append(cfgFile).append("\n");
-            result.append("   Future 'lucli server start");
+            result.append("   Future '" + org.lucee.lucli.LuCLI.cliName() + " server start");
             if (!"_default".equals(envKey)) {
                 result.append(" --env=").append(envKey);
             }
@@ -2196,7 +2196,7 @@ public class ServerCommandHandler {
 
             StringBuilder result = new StringBuilder();
             result.append("🔓 Server configuration unlocked for env '").append(envKey).append("'.\n");
-            result.append("   Future 'lucli server start");
+            result.append("   Future '" + org.lucee.lucli.LuCLI.cliName() + " server start");
             if (!"_default".equals(envKey)) {
                 result.append(" --env=").append(envKey);
             }

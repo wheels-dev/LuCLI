@@ -628,7 +628,7 @@ public class AiCommand implements Callable<Integer> {
 
             String endpoint = firstNonBlank(endpointName, config.defaultEndpoint);
             if (isBlank(endpoint)) {
-                StringOutput.Quick.error("No endpoint specified. Use --endpoint or set --default-endpoint via 'lucli ai config'.");
+                StringOutput.Quick.error("No endpoint specified. Use --endpoint or set --default-endpoint via '" + org.lucee.lucli.LuCLI.cliName() + " ai config'.");
                 return 1;
             }
 

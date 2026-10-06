@@ -209,6 +209,16 @@ public class LuCLI implements Callable<Integer> {
     public static Map<String, String> scriptEnvironment = new HashMap<>(System.getenv());
 
     /**
+     * The command name to show in user-facing hints ("Use 'wheels server new' ..."):
+     * the active profile's name, so an aliased binary doesn't tell users to run
+     * {@code lucli}. Falls back to {@code lucli}.
+     */
+    public static String cliName() {
+        String name = activeProfile != null ? activeProfile.name() : null;
+        return (name == null || name.isBlank()) ? "lucli" : name;
+    }
+
+    /**
      * The active CLI profile, determined by the binary name at startup.
      * Controls branding, home directory name, and prompt prefix.
      */
@@ -354,7 +364,7 @@ public class LuCLI implements Callable<Integer> {
         // Check if it's a CFML file (.cfm, .cfc, .cfs)
         if (file.exists() && arg.endsWith(".cfc")) {
             StringOutput.Quick.error("Executing .cfc files directly is not supported.");
-            StringOutput.getInstance().println("Use a module entry point instead (e.g. 'lucli modules run <module>').");
+            StringOutput.getInstance().println("Use a module entry point instead (e.g. '" + cliName() + " modules run <module>').");
             return 1;
         }
         if (file.exists() && (arg.endsWith(".cfm") || 
@@ -380,7 +390,7 @@ public class LuCLI implements Callable<Integer> {
             spec.commandLine(),
             "Unknown command, file, or module: '" + arg + "'\n" +
             "  - If it's a file, check the path and extension (.cfm, .cfs, .lucli)\n" +
-            "  - If it's a module, run 'lucli modules list' to see available modules\n" +
+            "  - If it's a module, run '" + cliName() + " modules list' to see available modules\n" +
             "  - Run 'lucli --help' to see available commands"
         );
     }
@@ -415,7 +425,7 @@ public class LuCLI implements Callable<Integer> {
         }
 
         verbose("Executing module shortcut: " + moduleName + 
-            " (equivalent to 'lucli modules run " + moduleName + " " + String.join(" ", args) + "')");
+            " (equivalent to '" + cliName() + " modules run " + moduleName + " " + String.join(" ", args) + "')");
         
         List<String> cmdArgs = moduleShortcutArgs(moduleName, args, isVerbose(), isDebug(), envOption, envFileOption);
         return spec.commandLine().execute(cmdArgs.toArray(new String[0]));
@@ -1093,7 +1103,7 @@ public class LuCLI implements Callable<Integer> {
         Path storePath = Paths.get(home).resolve("secrets").resolve("local.json");
 
         if (!Files.exists(storePath)) {
-            throw new IllegalStateException("Script references ${secret:...} but local secret store does not exist. Run 'lucli secrets init' and define the required secrets.");
+            throw new IllegalStateException("Script references ${secret:...} but local secret store does not exist. Run '" + cliName() + " secrets init' and define the required secrets.");
         }
 
         // Prefer non-interactive passphrase from environment when available

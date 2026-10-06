@@ -109,8 +109,8 @@ public class RunCommand implements Callable<Integer> {
             }
         }
         else if (fileName.endsWith(".cfc") ) {
-            StringOutput.Quick.error("Executing .cfc files via 'lucli run' is not supported.");
-            StringOutput.getInstance().println("Use a module entry point instead (e.g. 'lucli modules run <module>').");
+            StringOutput.Quick.error("Executing .cfc files via '" + org.lucee.lucli.LuCLI.cliName() + " run' is not supported.");
+            StringOutput.getInstance().println("Use a module entry point instead (e.g. '" + org.lucee.lucli.LuCLI.cliName() + " modules run <module>').");
             return 1;
         }
         else if (fileName.endsWith(".cfs") ) {

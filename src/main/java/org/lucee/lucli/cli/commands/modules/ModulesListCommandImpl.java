@@ -51,7 +51,7 @@ public class ModulesListCommandImpl implements Callable<Integer> {
 
         if (!Files.exists(modulesDir)) {
             StringOutput.getInstance().println("${EMOJI_INFO} No modules directory found at: " + modulesDir);
-            StringOutput.getInstance().println("${EMOJI_BULB} Use 'lucli modules init <module-name>' to create your first module.");
+            StringOutput.getInstance().println("${EMOJI_BULB} Use '" + org.lucee.lucli.LuCLI.cliName() + " modules init <module-name>' to create your first module.");
             return;
         }
 
@@ -70,7 +70,7 @@ public class ModulesListCommandImpl implements Callable<Integer> {
 
         if (installed.isEmpty() && repoModules.isEmpty()) {
             StringOutput.getInstance().println("${EMOJI_INFO} No modules found.");
-            StringOutput.getInstance().println("${EMOJI_BULB} Use 'lucli modules init <module-name>' to create a new module.");
+            StringOutput.getInstance().println("${EMOJI_BULB} Use '" + org.lucee.lucli.LuCLI.cliName() + " modules init <module-name>' to create a new module.");
             return;
         }
 

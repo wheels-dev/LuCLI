@@ -84,6 +84,7 @@ No release is tagged for this queue yet; tagging needs the Wheels release owner'
 |---|---|---|
 | 8 | wheels-dev/LuCLI [#19](https://github.com/wheels-dev/LuCLI/pull/19) (issue [#17](https://github.com/wheels-dev/LuCLI/issues/17)) | A module function run by an MCP `tools/call` receives the runtime-owned `__lucliMcpCall=true` argument; any caller-supplied argument of that name is dropped, and a terminal call never carries it |
 | 9 | wheels-dev/LuCLI [#21](https://github.com/wheels-dev/LuCLI/pull/21) (issue: upstream [cybersonic/LuCLI#136](https://github.com/cybersonic/LuCLI/issues/136)) | `--env` / `--envfile` reach a module run through the module shortcut or an aliased binary (re-injected at the root position) |
+| 14 | wheels-dev/LuCLI PR (this change; fork-only polish, no upstream issue) | User-facing hints name the active binary (`wheels server new`, not `lucli server new`) via `LuCLI.cliName()` |
 
 Upstream (row 8): issue [cybersonic/LuCLI#133](https://github.com/cybersonic/LuCLI/issues/133),
 PR [cybersonic/LuCLI#134](https://github.com/cybersonic/LuCLI/pull/134) (a `cherry-pick -x` of

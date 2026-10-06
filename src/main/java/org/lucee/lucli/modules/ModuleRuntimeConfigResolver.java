@@ -231,7 +231,7 @@ public class ModuleRuntimeConfigResolver {
             if (required) {
                 throw new IllegalStateException(
                     "Local secret store not found at " + storePath +
-                    ". Run 'lucli secrets init' to create it."
+                    ". Run '" + org.lucee.lucli.LuCLI.cliName() + " secrets init' to create it."
                 );
             }
             return null;

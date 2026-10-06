@@ -233,7 +233,7 @@ public class ServerCommand implements Callable<Integer> {
             }
 
             if (invokedAsTart) {
-                System.out.println("Tip: 'lucli server tart' also starts a server. Sweet.");
+                System.out.println("Tip: '" + org.lucee.lucli.LuCLI.cliName() + " server tart' also starts a server. Sweet.");
                 System.out.println("       .-\"\"-.");
                 System.out.println("     .'  .-.  '.");
                 System.out.println("    /   (   )   \\");
@@ -1164,7 +1164,7 @@ public class ServerCommand implements Callable<Integer> {
                 if (name != null && !name.trim().isEmpty()) {
                     System.err.println("No running Lucee server found with name '" + name + "'.");
                 } else {
-                    System.err.println("No running Lucee server found for this directory. Start one with 'lucli server start'.");
+                    System.err.println("No running Lucee server found for this directory. Start one with '" + org.lucee.lucli.LuCLI.cliName() + " server start'.");
                 }
                 return 1;
             }
@@ -1257,7 +1257,7 @@ public class ServerCommand implements Callable<Integer> {
 
             if (!Files.exists(cfg)) {
                 System.err.println("❌ Config file not found: " + cfg.toAbsolutePath());
-                System.err.println("   Use 'lucli server new' to create a new lucee.json.");
+                System.err.println("   Use '" + org.lucee.lucli.LuCLI.cliName() + " server new' to create a new lucee.json.");
                 return 1;
             }
 

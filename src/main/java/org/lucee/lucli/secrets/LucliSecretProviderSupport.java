@@ -193,7 +193,7 @@ catch(any e) {
             if (required) {
                 throw new IllegalStateException(
                     "Local secret store not found at " + getLocalStorePath() +
-                    ". Run 'lucli secrets init' first."
+                    ". Run '" + org.lucee.lucli.LuCLI.cliName() + " secrets init' first."
                 );
             }
             return null;

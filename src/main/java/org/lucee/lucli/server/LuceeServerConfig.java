@@ -1707,7 +1707,7 @@ public class LuceeServerConfig {
             if (!LucliSecretProviderSupport.hasLocalStoreFile()) {
                 throw new IOException(
                     "Configuration references secret placeholders but local secret store does not exist. " +
-                    "Run 'lucli secrets init' and define the required secrets."
+                    "Run '" + org.lucee.lucli.LuCLI.cliName() + " secrets init' and define the required secrets."
                 );
             }
             localPassphrase = LucliSecretProviderSupport.resolvePassphrase(
