@@ -83,7 +83,7 @@ No release is tagged for this queue yet; tagging needs the Wheels release owner'
 | Order | Change | Purpose |
 |---|---|---|
 | 8 | wheels-dev/LuCLI [#19](https://github.com/wheels-dev/LuCLI/pull/19) (issue [#17](https://github.com/wheels-dev/LuCLI/issues/17)) | A module function run by an MCP `tools/call` receives the runtime-owned `__lucliMcpCall=true` argument; any caller-supplied argument of that name is dropped, and a terminal call never carries it |
-| 13 | wheels-dev/LuCLI PR (this change; issue: upstream [cybersonic/LuCLI#137](https://github.com/cybersonic/LuCLI/issues/137)) | `lucli run <file>.cfm` runs the built-in variables setup inside `<cfscript>` instead of printing it |
+| 13 | wheels-dev/LuCLI [#26](https://github.com/wheels-dev/LuCLI/pull/26) (issue: upstream [cybersonic/LuCLI#137](https://github.com/cybersonic/LuCLI/issues/137)) | `lucli run <file>.cfm` runs the built-in variables setup inside `<cfscript>` instead of printing it |
 
 Upstream (row 8): issue [cybersonic/LuCLI#133](https://github.com/cybersonic/LuCLI/issues/133),
 PR [cybersonic/LuCLI#134](https://github.com/cybersonic/LuCLI/pull/134) (a `cherry-pick -x` of
