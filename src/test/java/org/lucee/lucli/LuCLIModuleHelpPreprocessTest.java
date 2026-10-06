@@ -1,6 +1,7 @@
 package org.lucee.lucli;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
@@ -82,5 +83,42 @@ class LuCLIModuleHelpPreprocessTest {
             new String[]{"wheels", "server", "start"},
             LuCLI.rewriteModuleHelpOrReserved(new String[]{"wheels", "server", "start"})
         );
+    }
+
+    // Root options before a reserved root subcommand: the subcommand is still the
+    // leading token, so it runs as a root command (e.g. `wheels --timing cfml 'x'`).
+    @Test
+    void rootFlagBeforeReservedSubcommand_isNotHandedToTheModule() {
+        String[] args = {"wheels", "--timing", "cfml", "writeOutput(1)"};
+        assertArrayEquals(args, LuCLI.rewriteModuleHelpOrReserved(args));
+    }
+
+    @Test
+    void rootOptionWithSeparateValueBeforeReservedSubcommand_isNotHandedToTheModule() {
+        String[] args = {"wheels", "--env", "prod", "server", "start"};
+        assertArrayEquals(args, LuCLI.rewriteModuleHelpOrReserved(args));
+    }
+
+    @Test
+    void rootOptionWithInlineValueBeforeReservedSubcommand_isNotHandedToTheModule() {
+        String[] args = {"wheels", "--timeout=30", "-v", "run", "x.cfm"};
+        assertArrayEquals(args, LuCLI.rewriteModuleHelpOrReserved(args));
+    }
+
+    @Test
+    void rootFlagBeforeModuleSubcommand_reservedPositionalStillRewritten() {
+        assertArrayEquals(
+            new String[]{"modules", "run", "wheels", "--verbose", "generate", "controller", "StaticPages", "help"},
+            LuCLI.rewriteModuleHelpOrReserved(new String[]{"wheels", "--verbose", "generate", "controller", "StaticPages", "help"})
+        );
+    }
+
+    @Test
+    void leadingPositionSkipsRootOptionsAndTheirValues() {
+        assertEquals(3, LuCLI.leadingPositionAfterRootOptions(new String[]{"wheels", "-t", "--verbose", "cfml"}));
+        assertEquals(3, LuCLI.leadingPositionAfterRootOptions(new String[]{"wheels", "-e", "prod", "server"}));
+        assertEquals(2, LuCLI.leadingPositionAfterRootOptions(new String[]{"wheels", "--envfile=.env", "repl"}));
+        assertEquals(2, LuCLI.leadingPositionAfterRootOptions(new String[]{"wheels", "--env"}));
+        assertEquals(1, LuCLI.leadingPositionAfterRootOptions(new String[]{"wheels", "--help"}));
     }
 }

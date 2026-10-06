@@ -83,6 +83,7 @@ No release is tagged for this queue yet; tagging needs the Wheels release owner'
 | Order | Change | Purpose |
 |---|---|---|
 | 8 | wheels-dev/LuCLI [#19](https://github.com/wheels-dev/LuCLI/pull/19) (issue [#17](https://github.com/wheels-dev/LuCLI/issues/17)) | A module function run by an MCP `tools/call` receives the runtime-owned `__lucliMcpCall=true` argument; any caller-supplied argument of that name is dropped, and a terminal call never carries it |
+| 12 | wheels-dev/LuCLI PR (this change; fork-only: follows row 2 / upstream PR [cybersonic/LuCLI#124](https://github.com/cybersonic/LuCLI/pull/124)) | Root options before a reserved root subcommand under an aliased binary run that subcommand instead of the module (`wheels --timing cfml 'x'`) |
 
 Upstream (row 8): issue [cybersonic/LuCLI#133](https://github.com/cybersonic/LuCLI/issues/133),
 PR [cybersonic/LuCLI#134](https://github.com/cybersonic/LuCLI/pull/134) (a `cherry-pick -x` of
