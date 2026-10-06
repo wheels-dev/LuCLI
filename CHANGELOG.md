@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file.
 
 ## Unreleased
+- **Fix: Test Suite No Longer Writes Into the Developer's LuCLI Home:** `ModuleArgBindingTest` and `McpCommandTest` installed their fixture modules into the real `~/.lucli/modules` and spawned `dev-lucli.sh` without passing a home, so `mvn test` compiled the fixtures into the real `~/.lucli/lucee-server`, and with an isolated test home (`-Duser.home=<empty dir>`) 17 tests failed because the child couldn't find the fixtures. Each class now uses a temporary LuCLI home (`@TempDir`), installs its fixture there and passes it to the child as `LUCLI_HOME`. Issue: #25 (upstream: cybersonic/LuCLI#144). Adds `ModuleArgBindingTest.childRunsInTheTemporaryLucliHome`.
+
 - **Fix: Hints Name the Binary You Ran:** User-facing hints such as "Use 'lucli server new' …", "Run 'lucli secrets init' …" or "run 'lucli modules list' …" always said `lucli`, also under an aliased binary (e.g. `wheels`). They now use `LuCLI.cliName()`, the active profile's name. The bundled `lang` module's "Use 'lucli lang help'" hint does the same. picocli `@Command` help text (annotation constants) is unchanged. Adds `CliNameTest`.
 
 - **Fix: The Bundled `lang` Module Compiles:** eight help strings in `modules/lang/Module.cfc` contained an unescaped `#` (`# e.g., …`), which CFML reads as an expression delimiter, so the module failed to compile ("Invalid identifier") and `lang` was unusable. They are escaped as `##`. Upstream: cybersonic/LuCLI#146 (PR cybersonic/LuCLI#147).
