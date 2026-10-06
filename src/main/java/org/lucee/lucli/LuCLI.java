@@ -391,7 +391,7 @@ public class LuCLI implements Callable<Integer> {
             "Unknown command, file, or module: '" + arg + "'\n" +
             "  - If it's a file, check the path and extension (.cfm, .cfs, .lucli)\n" +
             "  - If it's a module, run '" + cliName() + " modules list' to see available modules\n" +
-            "  - Run 'lucli --help' to see available commands"
+            "  - Run '" + cliName() + " --help' to see available commands"
         );
     }
 
