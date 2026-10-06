@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 ## Unreleased
+- **Fix: Hints Name the Binary You Ran:** User-facing hints such as "Use 'lucli server new' …", "Run 'lucli secrets init' …" or "run 'lucli modules list' …" always said `lucli`, also under an aliased binary (e.g. `wheels`). They now use `LuCLI.cliName()`, the active profile's name. The bundled `lang` module's "Use 'lucli lang help'" hint does the same. picocli `@Command` help text (annotation constants) is unchanged. Adds `CliNameTest`.
+
+- **Fix: The Bundled `lang` Module Compiles:** eight help strings in `modules/lang/Module.cfc` contained an unescaped `#` (`# e.g., …`), which CFML reads as an expression delimiter, so the module failed to compile ("Invalid identifier") and `lang` was unusable. They are escaped as `##`. Upstream: cybersonic/LuCLI#146 (PR cybersonic/LuCLI#147).
+
 - **Fix: `lucli run <file>.cfm` No Longer Prints the Built-in Variables Setup:** For a `.cfm` (a template, where text outside `<cfscript>` is output), the built-in variables setup was prepended as plain text, so about 20 lines of setup code and an `// === Original Script Content ===` marker were printed before the template's output. The setup now runs inside `<cfscript>` ahead of the unchanged template, so the output is exactly what the template renders, and the built-in variables (`__scriptPath`, `ARGS`, …) are still available. `.cfs` scripts were not affected. Upstream: cybersonic/LuCLI#137. Adds `TemplatePreludeTest`.
 
 - **Fix: Root Flags Before a Root Subcommand Under an Aliased Binary:** `wheels --timing cfml 'x'` (any root option such as `--timing`, `--verbose`, `-e prod`, `--timeout=30` before a reserved root subcommand) was handed to the module, because the reserved-token rule treated the subcommand as a module positional when it wasn't at index 1. The leading position now skips root options and their separate values, so the root subcommand runs with the flags as it does without them. Reserved tokens later in a module command are still rewritten as before. Adds `LuCLIModuleHelpPreprocessTest` cases.

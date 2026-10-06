@@ -211,7 +211,7 @@ public class DaemonCommand implements Callable<Integer> {
 
         if (!ModuleCommand.moduleExists(lspModuleName)) {
             LuCLI.error("LSP module '" + lspModuleName + "' not found under ~/.lucli/modules.");
-            LuCLI.error("Install or create it with 'lucli modules init " + lspModuleName + "'.");
+            LuCLI.error("Install or create it with '" + org.lucee.lucli.LuCLI.cliName() + " modules init " + lspModuleName + "'.");
             return 1;
         }
 

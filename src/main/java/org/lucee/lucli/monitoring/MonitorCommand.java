@@ -340,7 +340,7 @@ public class MonitorCommand {
             if (serverName != null) {
                 LuceeServerManager.ServerInfo serverInfo = serverManager.getServerInfoByName(serverName);
                 if (serverInfo == null) {
-                    lastErrorMessage = "❌ Server '" + serverName + "' not found.\n💡 Use 'lucli server list' to see available servers.";
+                    lastErrorMessage = "❌ Server '" + serverName + "' not found.\n💡 Use '" + org.lucee.lucli.LuCLI.cliName() + " server list' to see available servers.";
                     return null;
                 }
                 

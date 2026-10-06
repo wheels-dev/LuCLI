@@ -254,7 +254,7 @@ public class SecretsCommand implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             if (!show) {
-                System.err.println("By default, 'lucli secrets get' does not print raw values. Use --show if you really need to see it.");
+                System.err.println("By default, '" + org.lucee.lucli.LuCLI.cliName() + " secrets get' does not print raw values. Use --show if you really need to see it.");
                 return 1;
             }
             String provider = selectedProvider();

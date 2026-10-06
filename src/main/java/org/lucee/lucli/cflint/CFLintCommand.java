@@ -188,7 +188,7 @@ public class CFLintCommand {
             return true;
         } catch (Exception e) {
             System.err.println("❌ Error downloading or loading CFLint: " + e.getMessage());
-            System.err.println("💡 Try running 'lucli lint status' to check CFLint availability");
+            System.err.println("💡 Try running '" + org.lucee.lucli.LuCLI.cliName() + " lint status' to check CFLint availability");
             return false;
         }
     }

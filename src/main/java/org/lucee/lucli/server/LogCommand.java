@@ -62,7 +62,7 @@ public class LogCommand {
             LuceeServerManager.ServerInstance serverInstance = serverManager.getRunningServer(currentDir);
             if (serverInstance == null) {
                 System.err.println("No running server found for the current directory.");
-                System.err.println("Use 'lucli server start' to start a server first.");
+                System.err.println("Use '" + org.lucee.lucli.LuCLI.cliName() + " server start' to start a server first.");
                 System.exit(1);
             }
             
