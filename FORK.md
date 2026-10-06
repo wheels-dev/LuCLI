@@ -87,6 +87,7 @@ No release is tagged for this queue yet; tagging needs the Wheels release owner'
 | 10 | wheels-dev/LuCLI [#22](https://github.com/wheels-dev/LuCLI/pull/22) (issue: upstream [cybersonic/LuCLI#140](https://github.com/cybersonic/LuCLI/issues/140)) | REPL / terminal history and `settings.json` follow the active LuCLI home instead of `user.home`; legacy `~/.lucli/settings.json` read once and copied |
 | 11 | wheels-dev/LuCLI [#23](https://github.com/wheels-dev/LuCLI/pull/23) (issue: upstream [cybersonic/LuCLI#139](https://github.com/cybersonic/LuCLI/issues/139)) | `server start --dry-run` no longer writes a default `lucee.json`; the preview shows `--name` |
 | 12 | wheels-dev/LuCLI [#24](https://github.com/wheels-dev/LuCLI/pull/24) (fork-only: follows row 2 / upstream PR [cybersonic/LuCLI#124](https://github.com/cybersonic/LuCLI/pull/124)) | Root options before a reserved root subcommand under an aliased binary run that subcommand instead of the module (`wheels --timing cfml 'x'`) |
+| 13 | wheels-dev/LuCLI [#26](https://github.com/wheels-dev/LuCLI/pull/26) (issue: upstream [cybersonic/LuCLI#137](https://github.com/cybersonic/LuCLI/issues/137)) | `lucli run <file>.cfm` runs the built-in variables setup inside `<cfscript>` instead of printing it |
 
 Upstream (row 8): issue [cybersonic/LuCLI#133](https://github.com/cybersonic/LuCLI/issues/133),
 PR [cybersonic/LuCLI#134](https://github.com/cybersonic/LuCLI/pull/134) (a `cherry-pick -x` of
