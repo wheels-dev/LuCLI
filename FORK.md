@@ -85,6 +85,7 @@ No release is tagged for this queue yet; tagging needs the Wheels release owner'
 | 8 | wheels-dev/LuCLI [#19](https://github.com/wheels-dev/LuCLI/pull/19) (issue [#17](https://github.com/wheels-dev/LuCLI/issues/17)) | A module function run by an MCP `tools/call` receives the runtime-owned `__lucliMcpCall=true` argument; any caller-supplied argument of that name is dropped, and a terminal call never carries it |
 | 9 | wheels-dev/LuCLI [#21](https://github.com/wheels-dev/LuCLI/pull/21) (issue: upstream [cybersonic/LuCLI#136](https://github.com/cybersonic/LuCLI/issues/136)) | `--env` / `--envfile` reach a module run through the module shortcut or an aliased binary (re-injected at the root position) |
 | 10 | wheels-dev/LuCLI [#22](https://github.com/wheels-dev/LuCLI/pull/22) (issue: upstream [cybersonic/LuCLI#140](https://github.com/cybersonic/LuCLI/issues/140)) | REPL / terminal history and `settings.json` follow the active LuCLI home instead of `user.home`; legacy `~/.lucli/settings.json` read once and copied |
+| 11 | wheels-dev/LuCLI [#23](https://github.com/wheels-dev/LuCLI/pull/23) (issue: upstream [cybersonic/LuCLI#139](https://github.com/cybersonic/LuCLI/issues/139)) | `server start --dry-run` no longer writes a default `lucee.json`; the preview shows `--name` |
 
 Upstream (row 8): issue [cybersonic/LuCLI#133](https://github.com/cybersonic/LuCLI/issues/133),
 PR [cybersonic/LuCLI#134](https://github.com/cybersonic/LuCLI/pull/134) (a `cherry-pick -x` of
