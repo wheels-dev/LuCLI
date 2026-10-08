@@ -75,10 +75,10 @@ authentication is configured. Clients that resolve
 `localhost` only to `::1` need `127.0.0.1` (documented). A second loopback connector
 on `::1` is a possible follow-up, not part of this release.
 
-## Next queue (unreleased)
+## 0.6.2.3 queue
 
 Base: the shipped fork release `v0.6.2.2` (`b3c01ce`). Everything above carries forward.
-No release is tagged for this queue yet; tagging needs the Wheels release owner's go.
+Candidate prepared 2026-10-08. It is tagged only after the Wheels release owner's go (see Release).
 
 | Order | Change | Purpose |
 |---|---|---|
@@ -102,6 +102,14 @@ Release order: wheels-dev/wheels#3980 (Wheels drops the marker in `structuredArg
 today's LuCLI. Only then does a Wheels build pin a LuCLI with row 8: before #3980, Wheels'
 strict argument parsing rejects the marker (`toArgv()` turns it into `--__lucliMcpCall`), so
 every MCP `tools/call` would fail.
+
+Compatibility (row 8): a Wheels build must handle `__lucliMcpCall` before it pins 0.6.2.3.
+Wheels develop does (wheels-dev/wheels#3980). Wheels 4.1.x (v4.1.2 pins 0.6.2.1) does not,
+so 4.1.x stays at **max 0.6.2.2** unless #3980 is backported.
+
+## Next queue (unreleased)
+
+Base: the shipped fork release `v0.6.2.3`, once tagged. Empty.
 
 ## Approved patch mapping
 
