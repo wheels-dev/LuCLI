@@ -107,9 +107,21 @@ Compatibility (row 8): a Wheels build must handle `__lucliMcpCall` before it pin
 Wheels develop does (wheels-dev/wheels#3980). Wheels 4.1.x (v4.1.2 pins 0.6.2.1) does not,
 so 4.1.x stays at **max 0.6.2.2** unless #3980 is backported.
 
+## 0.6.2.4 queue
+
+Base: the shipped fork release `v0.6.2.3` (`350ded0`). Everything above carries forward.
+Candidate prepared 2026-10-13. It is tagged only after the Wheels release owner's go (see Release).
+
+| Order | Change | Purpose |
+|---|---|---|
+| 16 | wheels-dev/LuCLI [#30](https://github.com/wheels-dev/LuCLI/pull/30) (upstream: [cybersonic/LuCLI#157](https://github.com/cybersonic/LuCLI/pull/157), port) | Dependency updates: Jackson 2.18.11, JLine 3.30.15; transitive `tomcat-embed-core` 9.0.121 and `commons-lang3` 3.18.0 pinned via `dependencyManagement` |
+
+Compatibility: unchanged from 0.6.2.3. Wheels 4.1.x stays at **max 0.6.2.2** (row 8).
+When the fork next rebases onto an upstream release that contains #157, row 16 drops out.
+
 ## Next queue (unreleased)
 
-Base: the shipped fork release `v0.6.2.3`, once tagged. Empty.
+Base: the shipped fork release `v0.6.2.4`, once tagged. Empty.
 
 ## Approved patch mapping
 
