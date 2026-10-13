@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file.
 
 ## Unreleased
+- **Dependency Updates:** `jackson-databind`, `jackson-core` and `jackson-annotations` 2.15.2 → 2.18.11; JLine 3.26.3 → 3.30.15; the transitive `tomcat-embed-core` (→ 9.0.121) and `commons-lang3` (→ 3.18.0) are pinned through `dependencyManagement`. The OSGi log4j artifacts that Lucee bundles are unchanged. Upstream: cybersonic/LuCLI#157.
+
 - **Fix: Test Suite No Longer Writes Into the Developer's LuCLI Home:** `ModuleArgBindingTest` and `McpCommandTest` installed their fixture modules into the real `~/.lucli/modules` and spawned `dev-lucli.sh` without passing a home, so `mvn test` compiled the fixtures into the real `~/.lucli/lucee-server`, and with an isolated test home (`-Duser.home=<empty dir>`) 17 tests failed because the child couldn't find the fixtures. Each class now uses a temporary LuCLI home (`@TempDir`), installs its fixture there and passes it to the child as `LUCLI_HOME`. Issue: #25 (upstream: cybersonic/LuCLI#144). Adds `ModuleArgBindingTest.childRunsInTheTemporaryLucliHome`.
 
 - **Fix: Hints Name the Binary You Ran:** User-facing hints such as "Use 'lucli server new' …", "Run 'lucli secrets init' …" or "run 'lucli modules list' …" always said `lucli`, also under an aliased binary (e.g. `wheels`). They now use `LuCLI.cliName()`, the active profile's name. The bundled `lang` module's "Use 'lucli lang help'" hint does the same. picocli `@Command` help text (annotation constants) is unchanged. Adds `CliNameTest`.
